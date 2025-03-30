@@ -131,6 +131,7 @@ export class S3Service {
 		// Create output directory if it doesn't exist
 		try {
 			await fs.mkdir(outputDir, { recursive: true });
+			console.log(`Ensuring output directory exists: ${outputDir}`);
 		} catch (error) {
 			console.error("Error creating output directory:", error);
 			throw error;
@@ -149,6 +150,7 @@ export class S3Service {
 			const tempDir = await fs.mkdtemp(
 				path.join(os.tmpdir(), "log-pulse-download-"),
 			);
+			console.log(`Created temporary directory: ${tempDir}`);
 
 			// Use AWS CLI for faster downloads - download to temp dir first
 			const command = `aws s3 cp ${s3Uri} ${tempDir} --profile ${awsProfile} --recursive`;
@@ -232,9 +234,13 @@ export class S3Service {
 			}
 
 			const allFiles = await findAllFiles(tempDir);
+			console.log(
+				`Found ${allFiles.length} files to move to output directory`,
+			);
 
-			// Move each file to the output directory
+			// Move each file to the output directory - flattening the structure
 			for (const filePath of allFiles) {
+				// Just take the base filename regardless of subfolder structure
 				const fileName = path.basename(filePath);
 				const destPath = path.join(outputDir, fileName);
 
@@ -253,10 +259,12 @@ export class S3Service {
 				}
 
 				await fs.copyFile(filePath, finalDestPath);
+				console.log(`Moved file to: ${finalDestPath}`);
 			}
 
 			// Clean up the temp directory
 			await fs.rm(tempDir, { recursive: true, force: true });
+			console.log(`Cleaned up temporary directory: ${tempDir}`);
 		} catch (error) {
 			console.error("Error moving files from temp directory:", error);
 		}
@@ -268,11 +276,14 @@ export class S3Service {
 		outputDir: string,
 	): Promise<string[]> {
 		const downloadedFiles: string[] = [];
+		console.log(
+			`Fallback: downloading ${logFiles.length} files individually to ${outputDir}`,
+		);
 
 		// Download each log file
 		for (const logFile of logFiles) {
 			try {
-				// Get the filename from the S3 key
+				// Get the filename from the S3 key - just the filename, no path structure
 				const fileName = path.basename(logFile.key);
 				const outputPath = path.join(outputDir, fileName);
 				const decompressedPath = outputPath.replace(
@@ -296,6 +307,7 @@ export class S3Service {
 				const writeStream = createWriteStream(outputPath);
 				// @ts-ignore - TypeScript doesn't recognize Body as a stream
 				await pipeline(response.Body, writeStream);
+				console.log(`Downloaded file: ${outputPath}`);
 
 				// Decompress if it's a gzip file
 				if (logFile.key.endsWith(".gz")) {
@@ -304,6 +316,7 @@ export class S3Service {
 					const writeDecompressedStream =
 						createWriteStream(decompressedPath);
 					await pipeline(readStream, gunzip, writeDecompressedStream);
+					console.log(`Decompressed to: ${decompressedPath}`);
 
 					// Remove the compressed file after decompression
 					await fs.unlink(outputPath);

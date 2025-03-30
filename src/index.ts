@@ -39,11 +39,20 @@ async function clearLogsDirectory(): Promise<void> {
 	const logsDir = await ensureLogsDir();
 
 	try {
-		console.log("Clearing logs directory:", logsDir);
+		console.log(`Preparing logs directory: ${logsDir}`);
 
 		// Use a more reliable recursive deletion approach
 		async function removeContents(dirPath: string) {
+			if (!existsSync(dirPath)) {
+				console.log(
+					`Directory doesn't exist yet, creating: ${dirPath}`,
+				);
+				await fs.mkdir(dirPath, { recursive: true });
+				return;
+			}
+
 			const entries = await fs.readdir(dirPath, { withFileTypes: true });
+			console.log(`Found ${entries.length} items in logs directory`);
 
 			for (const entry of entries) {
 				const fullPath = path.join(dirPath, entry.name);
@@ -53,9 +62,11 @@ async function clearLogsDirectory(): Promise<void> {
 					await removeContents(fullPath);
 					// Then remove the now-empty directory
 					await fs.rmdir(fullPath);
+					console.log(`Removed subdirectory: ${entry.name}`);
 				} else {
 					// Remove file
 					await fs.unlink(fullPath);
+					console.log(`Removed file: ${entry.name}`);
 				}
 			}
 		}

@@ -66,8 +66,7 @@ export async function ensureLogsDir(): Promise<string> {
 
 // Get path to store logs for a specific client and date (optional)
 export function getClientLogsPath(clientName: string, date: string): string {
-	return path.join(
-		getLogsDir(),
-		`${clientName.replace(/\s+/g, "-")}-${date}`,
-	);
+	// Return the main logs directory without creating a client/date subfolder
+	// This ensures all logs are stored directly in the load-balancer-logs folder
+	return getLogsDir();
 }
