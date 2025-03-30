@@ -1,0 +1,32 @@
+# Dependency directories
+node_modules/
+
+# TypeScript output
+dist/
+
+# Environment variables
+.env
+
+# Log files directory - keep directory but ignore contents
+load-balancer-logs/*
+!load-balancer-logs/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+*.tmp
+*.log
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log* 
