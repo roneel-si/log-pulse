@@ -104,6 +104,60 @@ router.get("/statistics", async (req, res) => {
 	}
 });
 
+// Download logs as CSV
+router.get("/download-logs", async (req, res) => {
+	try {
+		const { startDate, endDate } = req.query;
+
+		if (!startDate || !endDate) {
+			return res
+				.status(400)
+				.json({ error: "Start date and end date are required" });
+		}
+
+		const logs = await queryLogs({ startDate, endDate });
+
+		// Set headers for CSV download
+		res.setHeader("Content-Type", "text/csv");
+		res.setHeader("Content-Disposition", "attachment; filename=logs.csv");
+
+		// Create CSV header
+		const csvHeader =
+			[
+				"timestamp",
+				"request_method",
+				"request_url",
+				"elb_status_code",
+				"target_status_code",
+				"received_bytes",
+				"sent_bytes",
+				"user_agent",
+			].join(",") + "\n";
+
+		// Create CSV rows
+		const csvRows = logs.logs.map((log) =>
+			[
+				log.timestamp,
+				log.request_method,
+				log.request_url,
+				log.elb_status_code,
+				log.target_status_code,
+				log.received_bytes,
+				log.sent_bytes,
+				`"${log.user_agent.replace(/"/g, '""')}"`, // Escape quotes in user agent
+			].join(","),
+		);
+
+		// Send CSV data
+		res.write(csvHeader);
+		csvRows.forEach((row) => res.write(row + "\n"));
+		res.end();
+	} catch (error) {
+		logger.error("Error downloading logs:", error);
+		res.status(500).json({ error: "Error downloading logs" });
+	}
+});
+
 // Health check endpoint
 router.get("/health", (req, res) => {
 	res.json({ status: "healthy" });

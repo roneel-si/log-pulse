@@ -14,7 +14,10 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"postinstall": "npm run build",
 		"global": "npm run build && npm i -g .",
-		"fix-global": "npm uninstall -g log-pulse && npm run build && npm i -g ."
+		"fix-global": "npm uninstall -g log-pulse && npm run build && npm i -g .",
+		"docker-build": "cd docker && docker compose build --no-cache",
+		"docker-run": "cd docker && docker compose up && docker compose up",
+		"docker-build-and-run": "cd docker && docker compose down && docker compose build backend && docker compose build --no-cache frontend && docker compose up"
 	},
 	"keywords": [
 		"aws",

@@ -192,7 +192,7 @@ const getStatistics = (startDate, endDate) => {
       WHERE timestamp BETWEEN @startDate AND @endDate
       GROUP BY request_url
       ORDER BY count DESC
-      LIMIT 5
+      LIMIT 10
     `,
 			)
 			.all(params);
@@ -235,7 +235,7 @@ const getStatistics = (startDate, endDate) => {
       AND elb_status_code >= 400 AND elb_status_code < 500
       GROUP BY request_url
       ORDER BY count DESC
-      LIMIT 5
+      LIMIT 10
     `,
 			)
 			.all(params);
@@ -250,7 +250,7 @@ const getStatistics = (startDate, endDate) => {
       AND elb_status_code >= 500
       GROUP BY request_url
       ORDER BY count DESC
-      LIMIT 5
+      LIMIT 10
     `,
 			)
 			.all(params);
