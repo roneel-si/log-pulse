@@ -10,6 +10,7 @@ A beautiful CLI tool for monitoring AWS ALB and ELB logs stored in S3 buckets.
 -   📊 Support for ALB and ELB log formats
 -   🔄 Easy integration with monitoring tools like Grafana, Loki, and Promtail
 -   🔑 Support for multiple AWS profiles to access logs across accounts
+-   📈 Built-in visualization with Grafana dashboards
 
 ## Installation
 
@@ -66,6 +67,37 @@ log-pulse view --client client1 --date 2023-01-01
 ```bash
 log-pulse list-clients
 ```
+
+### Visualize logs
+
+```bash
+# Prepare logs for visualization
+log-pulse prepare-logs
+
+# Start visualization dashboard
+log-pulse visualize
+
+# Stop visualization dashboard
+log-pulse visualize --stop
+```
+
+## Visualization Features
+
+LogPulse includes a powerful visualization system using Grafana, Loki, and Promtail:
+
+-   📊 **Status Code Distribution**: See 2xx, 3xx, 4xx, and 5xx responses at a glance
+-   📈 **Time-based Analysis**: View request patterns over time
+-   🔝 **Top URLs by Status**: Identify most frequent URLs for each status code category
+-   👤 **User Agent Analysis**: Break down traffic by client applications
+-   🌐 **Client IP Monitoring**: Track your highest traffic sources
+-   📦 **Bandwidth Usage**: Identify URLs with highest data transfer
+
+### Requirements for Visualization
+
+-   Docker and Docker Compose must be installed
+-   Downloaded log files in the load-balancer-logs directory
+
+See [docker/README.md](docker/README.md) for more details on the visualization components.
 
 ## Troubleshooting
 

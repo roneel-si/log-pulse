@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+    backend:
+        build:
+            context: ../backend
+            dockerfile: Dockerfile
+        volumes:
+            - ../load-balancer-raw-logs:/logs
+            - sqlite_data:/app/data
+        ports:
+            - "3001:3001"
+        environment:
+            - PORT=3001
+        command: npm start
+
+    # frontend:
+    #     build:
+    #         context: ../frontend
+    #         dockerfile: Dockerfile
+    #     volumes:
+    #         - ../frontend:/app
+    #         - /app/node_modules
+    #     ports:
+    #         - "3000:3000"
+    #     environment:
+    #         - REACT_APP_API_URL=http://localhost:3001
+    #     depends_on:
+    #         - backend
+
+volumes:
+    sqlite_data:
+        driver: local

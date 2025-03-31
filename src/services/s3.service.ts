@@ -167,46 +167,14 @@ export class S3Service {
 			// Get a list of all downloaded files
 			const downloadedFiles: string[] = [];
 			const files = await fs.readdir(outputDir);
-
-			// Process the downloaded files (decompress gzip files)
 			for (const file of files) {
-				const filePath = path.join(outputDir, file);
-
-				if (file.endsWith(".gz")) {
-					try {
-						const decompressedPath = filePath.replace(
-							/\.gz$/,
-							".log",
-						);
-						const readStream = createReadStream(filePath);
-						const gunzip = createGunzip();
-						const writeDecompressedStream =
-							createWriteStream(decompressedPath);
-						await pipeline(
-							readStream,
-							gunzip,
-							writeDecompressedStream,
-						);
-
-						// Remove the compressed file after decompression
-						await fs.unlink(filePath);
-						downloadedFiles.push(decompressedPath);
-					} catch (error) {
-						console.error(`Error decompressing ${file}:`, error);
-						downloadedFiles.push(filePath); // Still include the compressed file
-					}
-				} else {
-					downloadedFiles.push(filePath);
-				}
+				downloadedFiles.push(path.join(outputDir, file));
 			}
 
 			return downloadedFiles;
 		} catch (error) {
-			console.error("Error using AWS CLI for download:", error);
-
-			// Fallback to downloading individual files if AWS CLI fails
-			console.log("Falling back to individual file downloads...");
-			return this.downloadFilesIndividually(logFiles, outputDir);
+			console.error("Error downloading log files:", error);
+			throw error;
 		}
 	}
 
@@ -216,125 +184,38 @@ export class S3Service {
 		outputDir: string,
 	): Promise<void> {
 		try {
-			// Recursively find all files in the temp directory (handling nested folders)
-			async function findAllFiles(dir: string): Promise<string[]> {
-				const entries = await fs.readdir(dir, { withFileTypes: true });
-				const files: string[] = [];
+			const files = await fs.readdir(tempDir);
+			console.log(`Found ${files.length} files in temp directory`);
 
-				for (const entry of entries) {
-					const fullPath = path.join(dir, entry.name);
-					if (entry.isDirectory()) {
-						files.push(...(await findAllFiles(fullPath)));
-					} else {
-						files.push(fullPath);
-					}
-				}
+			// Move each file to the output directory
+			for (const file of files) {
+				const sourcePath = path.join(tempDir, file);
+				const targetPath = path.join(outputDir, file);
+				const stats = await fs.stat(sourcePath);
 
-				return files;
-			}
+				if (stats.isFile()) {
+					// Keep the original file extension (.gz)
+					await fs.copyFile(sourcePath, targetPath);
+					console.log(`Copied file: ${file} to output directory`);
+				} else if (stats.isDirectory()) {
+					// Create the directory in the output location
+					await fs.mkdir(targetPath, { recursive: true });
 
-			const allFiles = await findAllFiles(tempDir);
-			console.log(
-				`Found ${allFiles.length} files to move to output directory`,
-			);
-
-			// Move each file to the output directory - flattening the structure
-			for (const filePath of allFiles) {
-				// Just take the base filename regardless of subfolder structure
-				const fileName = path.basename(filePath);
-				const destPath = path.join(outputDir, fileName);
-
-				// If the file already exists in the destination, use a numbered suffix
-				let finalDestPath = destPath;
-				let counter = 1;
-
-				while (existsSync(finalDestPath)) {
-					const ext = path.extname(fileName);
-					const nameWithoutExt = path.basename(fileName, ext);
-					finalDestPath = path.join(
-						outputDir,
-						`${nameWithoutExt}_${counter}${ext}`,
+					// Recursively move files from this subdirectory
+					await this.moveFilesFromTempToOutput(
+						sourcePath,
+						targetPath,
 					);
-					counter++;
 				}
-
-				await fs.copyFile(filePath, finalDestPath);
-				console.log(`Moved file to: ${finalDestPath}`);
 			}
 
-			// Clean up the temp directory
+			// Clean up the temp directory after moving all files
 			await fs.rm(tempDir, { recursive: true, force: true });
-			console.log(`Cleaned up temporary directory: ${tempDir}`);
+			console.log(`Removed temporary directory: ${tempDir}`);
 		} catch (error) {
 			console.error("Error moving files from temp directory:", error);
+			throw error;
 		}
-	}
-
-	// Fallback method using individual file downloads
-	private async downloadFilesIndividually(
-		logFiles: S3Object[],
-		outputDir: string,
-	): Promise<string[]> {
-		const downloadedFiles: string[] = [];
-		console.log(
-			`Fallback: downloading ${logFiles.length} files individually to ${outputDir}`,
-		);
-
-		// Download each log file
-		for (const logFile of logFiles) {
-			try {
-				// Get the filename from the S3 key - just the filename, no path structure
-				const fileName = path.basename(logFile.key);
-				const outputPath = path.join(outputDir, fileName);
-				const decompressedPath = outputPath.replace(
-					/\.(gz|zip)$/,
-					".log",
-				);
-
-				const command = new GetObjectCommand({
-					Bucket: this.client.s3Bucket,
-					Key: logFile.key,
-				});
-
-				const response = await this.s3Client.send(command);
-
-				if (!response.Body) {
-					console.warn(`No data returned from S3 for ${logFile.key}`);
-					continue;
-				}
-
-				// Download the compressed file
-				const writeStream = createWriteStream(outputPath);
-				// @ts-ignore - TypeScript doesn't recognize Body as a stream
-				await pipeline(response.Body, writeStream);
-				console.log(`Downloaded file: ${outputPath}`);
-
-				// Decompress if it's a gzip file
-				if (logFile.key.endsWith(".gz")) {
-					const readStream = createReadStream(outputPath);
-					const gunzip = createGunzip();
-					const writeDecompressedStream =
-						createWriteStream(decompressedPath);
-					await pipeline(readStream, gunzip, writeDecompressedStream);
-					console.log(`Decompressed to: ${decompressedPath}`);
-
-					// Remove the compressed file after decompression
-					await fs.unlink(outputPath);
-
-					downloadedFiles.push(decompressedPath);
-				} else if (logFile.key.endsWith(".zip")) {
-					// Handle zip files if needed
-					downloadedFiles.push(outputPath);
-				} else {
-					downloadedFiles.push(outputPath);
-				}
-			} catch (error) {
-				console.error(`Error downloading file ${logFile.key}:`, error);
-				// Continue with other files even if one fails
-			}
-		}
-
-		return downloadedFiles;
 	}
 
 	async parseLogFile(filePath: string): Promise<LogLine[]> {

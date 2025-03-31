@@ -49,8 +49,12 @@ function getAppBaseDir(): string {
 
 // Get the fixed logs directory path
 export function getLogsDir(): string {
-	const baseDir = getAppBaseDir();
-	return path.join(baseDir, "load-balancer-logs");
+	return path.join(process.cwd(), "load-balancer-logs");
+}
+
+// Get the raw (uncompressed) logs directory path
+export function getRawLogsDir(): string {
+	return path.join(process.cwd(), "load-balancer-raw-logs");
 }
 
 // Ensure the logs directory exists
@@ -62,6 +66,17 @@ export async function ensureLogsDir(): Promise<string> {
 		console.error("Error creating logs directory:", error);
 	}
 	return logsDir;
+}
+
+// Ensure the raw logs directory exists
+export async function ensureRawLogsDir(): Promise<string> {
+	const rawLogsDir = getRawLogsDir();
+	try {
+		await fs.mkdir(rawLogsDir, { recursive: true });
+	} catch (error) {
+		console.error("Error creating raw logs directory:", error);
+	}
+	return rawLogsDir;
 }
 
 // Get path to store logs for a specific client and date (optional)

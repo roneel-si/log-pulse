@@ -7,9 +7,11 @@ dist/
 # Environment variables
 .env
 
-# Log files directory - keep the directory but ignore its contents
+# Log files directories - keep directories but ignore their contents
 load-balancer-logs/*
 !load-balancer-logs/.gitkeep
+load-balancer-raw-logs/*
+!load-balancer-raw-logs/.gitkeep
 
 # OS files
 .DS_Store
