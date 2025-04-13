@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
     backend:
+        container_name: visualization-dashboard-backend
         build:
             context: ../backend
             dockerfile: Dockerfile
@@ -15,6 +16,7 @@ services:
         command: npm start
 
     frontend:
+        container_name: visualization-dashboard-frontend
         build:
             context: ../frontend
             dockerfile: Dockerfile

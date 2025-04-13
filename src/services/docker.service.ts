@@ -130,7 +130,11 @@ export class DockerService {
 	/**
 	 * Get the status of the visualization containers
 	 */
-	async getVisualizationStatus(): Promise<{
+	async getVisualizationStatus({
+		forceStop = false,
+	}: {
+		forceStop?: boolean;
+	}): Promise<{
 		running: boolean;
 		grafanaUrl?: string;
 	}> {
@@ -142,17 +146,35 @@ export class DockerService {
 
 			console.log("Command output:", stdout);
 
-			// Check if Grafana is running - look for "Up" state
-			if (stdout.includes("grafana") && stdout.includes(" Up ")) {
-				console.log("Grafana container is running");
-				return {
-					running: true,
-					grafanaUrl: "http://localhost:3000",
-				};
+			// Check if Visualization Dashboard is running
+			if (
+				stdout.includes("visualization-dashboard") &&
+				stdout.includes(" Up ")
+			) {
+				console.log(
+					"Visualization Dashboard container is running. Stopping it...",
+				);
+				if (forceStop) {
+					// Stop the containers
+					await this.stopVisualization();
+					console.log(
+						"Visualization Dashboard container stopped successfully",
+					);
+					return {
+						running: false,
+					};
+				} else {
+					return {
+						running: true,
+						grafanaUrl: "http://localhost:3000",
+					};
+				}
 			} else if (stdout.trim() && !stdout.includes("Exit")) {
-				// Some containers running but not Grafana
-				console.log("Some containers are running, but not Grafana");
-				return { running: true };
+				// Some containers running but not Visualization Dashboard
+				console.log(
+					"Some containers are running, but not the visualization dashboard",
+				);
+				return { running: false };
 			}
 
 			console.log("No containers are running");

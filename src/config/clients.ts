@@ -2,11 +2,13 @@ import { Client } from "../types/index.js";
 
 export const clients: Client[] = [
 	{
-		name: "client1",
+		name: "Punjab Kings",
 		region: "us-east-1",
-		s3Bucket: "client1-alb-logs",
-		s3Prefix: "alb-logs",
+		s3Bucket: "si-global-elb-logs",
+		s3Prefix:
+			"elb-waf-punjabkings/AWSLogs/572143828798/elasticloadbalancing/us-east-1",
 		loadBalancerType: "ALB",
+		awsProfile: "sportz",
 	},
 	{
 		name: "client2",

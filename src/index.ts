@@ -312,10 +312,12 @@ async function init() {
 
 								// Get status with URL
 								const status =
-									await dockerService.getVisualizationStatus();
+									await dockerService.getVisualizationStatus({
+										forceStop: false,
+									});
 								if (status.running && status.grafanaUrl) {
 									showSuccess(
-										`Grafana dashboard is available at: ${chalk.bold(
+										`Visualization dashboard is available at: ${chalk.bold(
 											status.grafanaUrl,
 										)}`,
 									);
@@ -409,14 +411,16 @@ async function init() {
 				}
 
 				// Check visualization status
-				const status = await dockerService.getVisualizationStatus();
+				const status = await dockerService.getVisualizationStatus({
+					forceStop: true,
+				});
 
 				if (status.running) {
 					showInfo("Visualization dashboard is already running");
 
 					if (status.grafanaUrl) {
 						showSuccess(
-							`Grafana dashboard is available at: ${chalk.bold(
+							`Visualization dashboard is available at: ${chalk.bold(
 								status.grafanaUrl,
 							)}`,
 						);
@@ -502,10 +506,12 @@ async function init() {
 
 					// Get status with URL
 					const updatedStatus =
-						await dockerService.getVisualizationStatus();
+						await dockerService.getVisualizationStatus({
+							forceStop: false,
+						});
 					if (updatedStatus.running && updatedStatus.grafanaUrl) {
 						showSuccess(
-							`Grafana dashboard is available at: ${chalk.bold(
+							`Visualization dashboard is available at: ${chalk.bold(
 								updatedStatus.grafanaUrl,
 							)}`,
 						);
@@ -755,14 +761,16 @@ async function viewLogs(query: LogQuery): Promise<void> {
 
 						// Check if containers are already running
 						const status =
-							await dockerService.getVisualizationStatus();
+							await dockerService.getVisualizationStatus({
+								forceStop: false,
+							});
 						if (status.running) {
 							showInfo(
 								"Visualization dashboard is already running",
 							);
 							if (status.grafanaUrl) {
 								showSuccess(
-									`Grafana dashboard is available at: ${chalk.bold(
+									`Visualization dashboard is available at: ${chalk.bold(
 										status.grafanaUrl,
 									)}`,
 								);
@@ -809,13 +817,15 @@ async function viewLogs(query: LogQuery): Promise<void> {
 
 							// Get status with URL
 							const updatedStatus =
-								await dockerService.getVisualizationStatus();
+								await dockerService.getVisualizationStatus({
+									forceStop: false,
+								});
 							if (
 								updatedStatus.running &&
 								updatedStatus.grafanaUrl
 							) {
 								showSuccess(
-									`Grafana dashboard is available at: ${chalk.bold(
+									`Visualization dashboard is available at: ${chalk.bold(
 										updatedStatus.grafanaUrl,
 									)}`,
 								);
