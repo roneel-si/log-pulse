@@ -11,12 +11,12 @@ export const clients: Client[] = [
 		awsProfile: "sportz",
 	},
 	{
-		name: "client2",
-		region: "us-west-2",
-		s3Bucket: "client2-elb-logs",
-		s3Prefix: "elb-logs",
+		name: "Bcci-Wplt20",
+		region: "us-east-1",
+		s3Bucket: "si-wplt20-logs",
+		s3Prefix: "elb/AWSLogs/747701828668/elasticloadbalancing/us-east-1",
 		loadBalancerType: "ELB",
-		awsProfile: "client2-profile",
+		awsProfile: "bcci",
 	},
 	{
 		name: "client3",
