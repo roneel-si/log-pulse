@@ -83,6 +83,8 @@ function App() {
 					dateRange.startDate,
 					dateRange.endDate,
 				);
+				console.log("===load ===", data);
+				
 				setStatistics(data);
 			} catch (err) {
 				setError("Failed to fetch statistics");
