@@ -68,6 +68,7 @@ const Dashboard = ({ statistics }) => {
 		{ i: "topUrls", x: 6, y: 2, w: 6, h: 3 },
 		{ i: "topUrls4xx", x: 0, y: 5, w: 6, h: 3 },
 		{ i: "topUrls5xx", x: 6, y: 5, w: 6, h: 3 },
+		{ i: "topUrlsTargetResponseTimeout", x: 0, y: 5, w: 6, h: 3 },
 		{ i: "topUserAgents", x: 0, y: 8, w: 6, h: 3 },
 		{ i: "topUrlsByInBytes", x: 6, y: 8, w: 6, h: 3 },
 		{ i: "topUrlsByOutBytes", x: 0, y: 11, w: 12, h: 3 },
@@ -132,6 +133,16 @@ const Dashboard = ({ statistics }) => {
 				<DataTable
 					title="Top URLs with 5xx Status"
 					data={statistics.topUrls5xx}
+					columns={[
+						{ key: "request_url", label: "URL" },
+						{ key: "count", label: "Count" },
+					]}
+				/>
+			</div>
+			<div key="topUrlsTargetResponseTimeout">
+				<DataTable
+					title="Top URLs with Status"
+					data={statistics.topUrlsTargetResponseTimeout}
 					columns={[
 						{ key: "request_url", label: "URL" },
 						{ key: "count", label: "Count" },

@@ -255,6 +255,22 @@ const getStatistics = (startDate, endDate) => {
 			)
 			.all(params);
 
+	// Get top URLs with 5xx status codes
+	const topUrlsTargetResponseTimeout = db
+	.prepare(
+		`
+	SELECT request_url, COUNT(*) as count
+	FROM lb_logs
+	WHERE timestamp BETWEEN @startDate AND @endDate
+	AND elb_status_code >= 500
+	GROUP BY request_url
+	ORDER BY count DESC
+	LIMIT 10
+	`,
+			)
+			.all(params);
+
+
 		// Get top user agents by request count
 		const topUserAgents = db
 			.prepare(
@@ -278,6 +294,7 @@ const getStatistics = (startDate, endDate) => {
 			topUrlsByOutBytes,
 			topUrls4xx,
 			topUrls5xx,
+			topUrlsTargetResponseTimeout,
 			topUserAgents,
 		};
 	} catch (error) {
